@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking | Bruun & Fasterholdt Frisør</title>
+    <link rel="stylesheet" href="../css/booking-page.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header id="top">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>BRUUN & FASTERHOLDT</h1>
+                    <span>FRISØR</span>
+                </div>
+                <div class="mobile-menu-btn">☰</div>
+                <nav>
+                    <ul>
+                        <li><a href="../index.html#booking">Booking</a></li>
+                        <li><a href="../index.html#priser">Priser</a></li>
+                        <li><a href="../index.html#abningstider">Åbningstider</a></li>
+                        <li><a href="../index.html#om-os">Om Os</a></li>
+                        <li><a href="../index.html#ansatte">Ansatte</a></li>
+                        <li><a href="../index.html#kontakt">Kontakt</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Auth Section (Login/Register) -->
+    <section id="auth-section" class="auth-section">
+        <div class="container">
+            <div class="auth-container">
+                <div class="tabs">
+                    <div class="tab active" data-tab="login">Log ind</div>
+                    <div class="tab" data-tab="register">Opret konto</div>
+                </div>
+                
+                <div class="form-container">
+                    <!-- Login Form -->
+                    <form id="login-form" class="auth-form active">
+                        <h2>Log ind på din konto</h2>
+                        <div class="form-group">
+                            <label for="login-email">Email</label>
+                            <input type="email" id="login-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="login-password">Adgangskode</label>
+                            <input type="password" id="login-password" required>
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn">Log ind</button>
+                        </div>
+                        <div class="form-group">
+                            <a href="#" id="forgot-password">Glemt adgangskode?</a>
+                        </div>
+                    </form>
+                    
+                    <!-- Register Form -->
+                    <form id="register-form" class="auth-form">
+                        <h2>Opret en ny konto</h2>
+                        <div class="form-group">
+                            <label for="register-name">Navn</label>
+                            <input type="text" id="register-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-email">Email</label>
+                            <input type="email" id="register-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-phone">Telefonnummer</label>
+                            <input type="tel" id="register-phone" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-password">Adgangskode</label>
+                            <input type="password" id="register-password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-confirm-password">Bekræft adgangskode</label>
+                            <input type="password" id="register-confirm-password" required>
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn">Opret konto</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- User Dashboard (Hidden by default) -->
+    <section id="user-dashboard" class="dashboard-section" style="display: none;">
+        <div class="container">
+            <div class="dashboard-header">
+                <h2>Velkommen, <span id="user-name">Kunde</span></h2>
+                <button id="logout-btn" class="btn-secondary">Log ud</button>
+            </div>
+            
+            <div class="dashboard-content">
+                <div class="dashboard-menu">
+                    <div class="menu-item active" data-content="upcoming">Mine tider</div>
+                    <div class="menu-item" data-content="book-new">Book ny tid</div>
+                    <div class="menu-item" data-content="profile">Min profil</div>
+                </div>
+                
+                <div class="dashboard-view">
+                    <!-- Upcoming Appointments View -->
+                    <div id="upcoming-view" class="content-view active">
+                        <h3>Mine kommende tider</h3>
+                        <div id="appointments-container" class="appointments-container">
+                            <!-- Appointments will be loaded here -->
+                            <div class="empty-state">
+                                <p>Du har ingen kommende tider.</p>
+                                <button class="btn book-now-btn">Book tid nu</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Book New Appointment View -->
+                    <div id="book-new-view" class="content-view">
+                        <h3>Book ny tid</h3>
+                        
+                        <div class="booking-wizard">
+                            <div class="wizard-steps">
+                                <div class="step active" data-step="1">
+                                    <span class="step-number">1</span>
+                                    <span class="step-name">Vælg service</span>
+                                </div>
+                                <div class="step" data-step="2">
+                                    <span class="step-number">2</span>
+                                    <span class="step-name">Vælg medarbejder</span>
+                                </div>
+                                <div class="step" data-step="3">
+                                    <span class="step-number">3</span>
+                                    <span class="step-name">Vælg dato & tid</span>
+                                </div>
+                                <div class="step" data-step="4">
+                                    <span class="step-number">4</span>
+                                    <span class="step-name">Bekræft</span>
+                                </div>
+                            </div>
+                            
+                            <div class="wizard-content">
+                                <!-- Step 1: Service Selection -->
+                                <div class="wizard-step-content active" data-step="1">
+                                    <h4>Vælg service</h4>
+                                    <div class="services-grid booking-services">
+                                        <div class="service-item" data-service="dameklip" data-price="475" data-duration="45">
+                                            <h5>Dameklip</h5>
+                                            <p>Inkl. vask, klip og føn</p>
+                                            <p class="price">Fra 475 kr.</p>
+                                            <p class="duration">45 min</p>
+                                        </div>
+                                        <div class="service-item" data-service="herreklip" data-price="375" data-duration="30">
+                                            <h5>Herreklip</h5>
+                                            <p>Inkl. vask og klip</p>
+                                            <p class="price">Fra 375 kr.</p>
+                                            <p class="duration">30 min</p>
+                                        </div>
+                                        <div class="service-item" data-service="farvning" data-price="700" data-duration="90">
+                                            <h5>Farvning</h5>
+                                            <p>Inkl. vask, farve og føn</p>
+                                            <p class="price">Fra 700 kr.</p>
+                                            <p class="duration">90 min</p>
+                                        </div>
+                                        <div class="service-item" data-service="striber" data-price="800" data-duration="120">
+                                            <h5>Striber/Balayage</h5>
+                                            <p>Inkl. vask, farve og føn</p>
+                                            <p class="price">Fra 800 kr.</p>
+                                            <p class="duration">120 min</p>
+                                        </div>
+                                        <div class="service-item" data-service="boerneklip" data-price="300" data-duration="30">
+                                            <h5>Børneklip (4-12 år)</h5>
+                                            <p>Inkl. vask og klip</p>
+                                            <p class="price">Fra 300 kr.</p>
+                                            <p class="duration">30 min</p>
+                                        </div>
+                                    </div>
+                                    <div class="wizard-navigation">
+                                        <button class="btn btn-next" disabled>Næste</button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Step 2: Staff Selection -->
+                                <div class="wizard-step-content" data-step="2">
+                                    <h4>Vælg medarbejder</h4>
+                                    <div class="staff-grid">
+                                        <div class="staff-item" data-staff="sarah">
+                                            <div class="staff-img" style="background-image: url('/api/placeholder/300/300');"></div>
+                                            <h5>Sarah Bruun Leick</h5>
+                                            <p>Indehaver</p>
+                                        </div>
+                                        <div class="staff-item" data-staff="jane">
+                                            <div class="staff-img" style="background-image: url('/api/placeholder/300/300');"></div>
+                                            <h5>Jane Fasterholdt</h5>
+                                            <p>Indehaver</p>
+                                        </div>
+                                        <div class="staff-item" data-staff="line">
+                                            <div class="staff-img" style="background-image: url('/api/placeholder/300/300');"></div>
+                                            <h5>Line</h5>
+                                            <p>Assistent</p>
+                                        </div>
+                                        <div class="staff-item" data-staff="any">
+                                            <div class="staff-img any-staff">
+                                                <span>Ingen</span>
+                                                <span>præference</span>
+                                            </div>
+                                            <h5>Ingen præference</h5>
+                                            <p>Første ledige tid</p>
+                                        </div>
+                                    </div>
+                                    <div class="wizard-navigation">
+                                        <button class="btn btn-prev">Tilbage</button>
+                                        <button class="btn btn-next" disabled>Næste</button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Step 3: Date & Time Selection -->
+                                <div class="wizard-step-content" data-step="3">
+                                    <h4>Vælg dato & tid</h4>
+                                    <div class="date-time-selection">
+                                        <div class="calendar-container">
+                                            <div class="calendar-nav">
+                                                <button id="prev-month" class="calendar-nav-btn">&lt;</button>
+                                                <h5 id="current-month">April 2025</h5>
+                                                <button id="next-month" class="calendar-nav-btn">&gt;</button>
+                                            </div>
+                                            <div class="calendar" id="booking-calendar">
+                                                <!-- Calendar will be generated by JavaScript -->
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="time-slots">
+                                            <h5 id="selected-date">Vælg en dato</h5>
+                                            <div id="time-slots-container" class="time-slots-container">
+                                                <!-- Time slots will be loaded based on selected date -->
+                                                <p class="no-date-selected">Vælg venligst en dato for at se ledige tider</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="wizard-navigation">
+                                        <button class="btn btn-prev">Tilbage</button>
+                                        <button class="btn btn-next" disabled>Næste</button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Step 4: Confirmation -->
+                                <div class="wizard-step-content" data-step="4">
+                                    <h4>Bekræft din booking</h4>
+                                    <div class="booking-summary">
+                                        <div class="summary-item">
+                                            <span class="summary-label">Service:</span>
+                                            <span id="summary-service" class="summary-value">-</span>
+                                        </div>
+                                        <div class="summary-item">
+                                            <span class="summary-label">Pris:</span>
+                                            <span id="summary-price" class="summary-value">-</span>
+                                        </div>
+                                        <div class="summary-item">
+                                            <span class="summary-label">Varighed:</span>
+                                            <span id="summary-duration" class="summary-value">-</span>
+                                        </div>
+                                        <div class="summary-item">
+                                            <span class="summary-label">Frisør:</span>
+                                            <span id="summary-stylist" class="summary-value">-</span>
+                                        </div>
+                                        <div class="summary-item">
+                                            <span class="summary-label">Dato:</span>
+                                            <span id="summary-date" class="summary-value">-</span>
+                                        </div>
+                                        <div class="summary-item">
+                                            <span class="summary-label">Tid:</span>
+                                            <span id="summary-time" class="summary-value">-</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="cancellation-policy">
+                                        <h5>Afbestillingspolitik</h5>
+                                        <p>Venligst afbestil mindst 24 timer i forvejen. Ved udeblivelse eller for sen afbestilling kan der opkræves gebyr.</p>
+                                    </div>
+                                    
+                                    <div class="wizard-navigation">
+                                        <button class="btn btn-prev">Tilbage</button>
+                                        <button id="confirm-booking" class="btn">Bekræft booking</button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Booking Confirmation -->
+                                <div class="wizard-step-content" data-step="confirmation">
+                                    <div class="booking-confirmation">
+                                        <div class="confirmation-icon">✓</div>
+                                        <h4>Booking bekræftet!</h4>
+                                        <p>Din tid er nu booket. Vi har sendt en bekræftelses-email til din registrerede email-adresse.</p>
+                                        <div class="confirmation-details">
+                                            <div class="confirmation-item">
+                                                <span class="confirmation-label">Booking ID:</span>
+                                                <span id="confirmation-id" class="confirmation-value">-</span>
+                                            </div>
+                                            <div class="confirmation-item">
+                                                <span class="confirmation-label">Service:</span>
+                                                <span id="confirmation-service" class="confirmation-value">-</span>
+                                            </div>
+                                            <div class="confirmation-item">
+                                                <span class="confirmation-label">Dato:</span>
+                                                <span id="confirmation-date" class="confirmation-value">-</span>
+                                            </div>
+                                            <div class="confirmation-item">
+                                                <span class="confirmation-label">Tid:</span>
+                                                <span id="confirmation-time" class="confirmation-value">-</span>
+                                            </div>
+                                        </div>
+                                        <button class="btn" id="return-to-dashboard">Tilbage til Dashboard</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Profile View -->
+                    <div id="profile-view" class="content-view">
+                        <h3>Min profil</h3>
+                        <div class="profile-container">
+                            <form id="profile-form">
+                                <div class="form-group">
+                                    <label for="profile-name">Navn</label>
+                                    <input type="text" id="profile-name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="profile-email">Email</label>
+                                    <input type="email" id="profile-email" disabled>
+                                </div>
+                                <div class="form-group">
+                                    <label for="profile-phone">Telefonnummer</label>
+                                    <input type="tel" id="profile-phone">
+                                </div>
+                                <div class="form-group">
+                                    <button type="submit" class="btn">Gem ændringer</button>
+                                </div>
+                            </form>
+                            
+                            <div class="password-change">
+                                <h4>Skift adgangskode</h4>
+                                <form id="password-form">
+                                    <div class="form-group">
+                                        <label for="current-password">Nuværende adgangskode</label>
+                                        <input type="password" id="current-password" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="new-password">Ny adgangskode</label>
+                                        <input type="password" id="new-password" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="confirm-new-password">Bekræft ny adgangskode</label>
+                                        <input type="password" id="confirm-new-password" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <button type="submit" class="btn">Skift adgangskode</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="logo" style="justify-content: center; margin-bottom: 20px;">
+                    <h1>BRUUN & FASTERHOLDT</h1>
+                    <span>FRISØR</span>
+                </div>
+                <p>Butikstorvet 6C, 7190 Billund | Tlf: 7533 1616</p>
+                <div class="social-links">
+                    <a href="#">Facebook</a>
+                    <a href="#">Instagram</a>
+                </div>
+                <p class="copyright">© 2025 Bruun & Fasterholdt ApS. Alle rettigheder forbeholdes.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Alert Modal -->
+    <div id="alert-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 id="modal-title">Besked</h4>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="modal-message"></p>
+            </div>
+            <div class="modal-footer">
+                <button id="modal-btn" class="btn">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../scripts/script.js"></script>
+</body>
+</html>
